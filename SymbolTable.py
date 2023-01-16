@@ -12,6 +12,13 @@ STATIC = 'static'
 VAR = 'var'
 ARG = 'argument'
 
+kind_to_segment = {
+    FIELD: 'this',
+    STATIC: STATIC,
+    VAR: 'local',
+    ARG: ARG
+}
+
 class SymbolTable:
     """A symbol table that associates names with information needed for Jack
     compilation: type, kind and running index. The symbol table has two nested
@@ -70,6 +77,10 @@ class SymbolTable:
             if the identifier is unknown in the current scope.
         """
         return self._table_name(name)[name][1]
+
+    # added
+    def segment_of(self, name: str) -> str:
+        return kind_to_segment[self._table_name(name)[name][1]]
 
     def type_of(self, name: str) -> str:
         """

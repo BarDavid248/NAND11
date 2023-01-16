@@ -260,7 +260,7 @@ class CompilationEngine:
         while has_more:
             # varName
             name = self.current_token()
-            self.symbol_table.define(name, _type, LOCAL)
+            self.symbol_table.define(name, _type, VAR)
             self.compile_token(self.compare(IDENTIFIER))
 
             # ','
@@ -552,7 +552,7 @@ class CompilationEngine:
 
             # varName
             else:
-                self.writer.write_push(self.symbol_table.kind_of(prev_value), self.symbol_table.index_of(prev_value))
+                self.writer.write_push(self.symbol_table.segment_of(prev_value), self.symbol_table.index_of(prev_value))
 
         else:
             raise Exception(f'Invalid Expression. curr_token: {self.current_token()}')
