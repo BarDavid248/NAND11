@@ -382,6 +382,8 @@ class CompilationEngine:
         # 'while'
         self.compile_token()
 
+        self.writer.write_label(f"L{self.label_num}")
+
         # '('
         self.compile_token(self.compare(SYMBOL, '('))
 
@@ -391,6 +393,9 @@ class CompilationEngine:
         # ')'
         self.compile_token(self.compare(SYMBOL, ')'))
 
+        self.writer.write_arithmetic(unop_dict['-'])
+        self.writer.write_if(f"L{self.label_num+1}")
+
         # '{'
         self.compile_token(self.compare(SYMBOL, '{'))
 
@@ -399,6 +404,12 @@ class CompilationEngine:
 
         # '}'
         self.compile_token(self.compare(SYMBOL, '}'))
+
+        self.writer.write_goto(f"L{self.label_num}")
+
+        self.writer.write_label(f"L{self.label_num+1}")
+
+        self.label_num += 1
 
         self.end_root('whileStatement')
 

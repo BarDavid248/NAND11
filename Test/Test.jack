@@ -6,13 +6,9 @@ class Main {
     function void main() {
         var int x;
         var int y;
-        if (x+1 = 0)
+        while (x+1 = 0)
         {
             let y = 1;
-        }
-        else
-        {
-            let y = x - 5;
         }
         return;
    }

@@ -1,12 +1,13 @@
 function Main.main 0
+L1:
 	push local 0
 	push const 1
 	add
 	push const 0
 	eq
+	neg
+	if-goto L2
 	push const 1
 	pop local 1
-	push local 0
-	push const 5
-	sub
-	pop local 1
+	goto L1
+L2:
