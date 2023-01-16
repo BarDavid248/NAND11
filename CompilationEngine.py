@@ -60,6 +60,7 @@ class CompilationEngine:
         self.symbol_table = SymbolTable()
 
         self.class_name = ''
+        self.label_num = 1
 
     # added
     def compare(self, token_type, value=None):
@@ -435,6 +436,9 @@ class CompilationEngine:
         # ')'
         self.compile_token(self.compare(SYMBOL, ')'))
 
+        self.writer.write_arithmetic(unop_dict['-'])
+        self.writer.write_if(f"L{self.label_num}")
+
         # '{'
         self.compile_token(self.compare(SYMBOL, '{'))
 
@@ -446,8 +450,11 @@ class CompilationEngine:
 
         # ('else' '{' statements '}')?
         if self.compare(KEYWORD, 'else'):
+            self.writer.write_goto(f"L{self.label_num + 1}")
+
             # 'else'
             self.compile_token()
+            self.writer.write_label(f"L{self.label_num}")
 
             # '{'
             self.compile_token(self.compare(SYMBOL, '{'))
@@ -457,6 +464,12 @@ class CompilationEngine:
 
             # '}'
             self.compile_token(self.compare(SYMBOL, '}'))
+            self.writer.write_label(f"L{self.label_num + 1}")
+
+            self.label_num += 2
+        else:
+            self.writer.write_label(f"L{self.label_num}")
+            self.label_num += 1
 
         self.end_root('ifStatement')
 
