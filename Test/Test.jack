@@ -3,11 +3,12 @@ class Main {
     field int i;
     static bool b1, b2;
 
-    function void main() {
+    function void main(int i) {
         var Point p;
 
-        do Output.printInt(1 + (2 * 3));
-        do Output.printInt(b1 + (p * i));
+        let p = 6 * 5;
+        let i = p - 1;
+
         return;
    }
 

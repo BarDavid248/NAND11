@@ -59,7 +59,7 @@ class CompilationEngine:
 
         self.symbol_table = SymbolTable()
 
-        self.indent_count = 0
+        self.class_name = ''
 
     # added
     def compare(self, token_type, value=None):
@@ -85,7 +85,7 @@ class CompilationEngine:
         else:
             name = f"{xml_element_names[IDENTIFIER]}_{self.symbol_table.type_of(value)}_{self.symbol_table.kind_of(value)}_{self.symbol_table.index_of(value)}"
 
-        self.output_stream.write(self.indent_count * '\t' + f"<{name}> {value} </{name}>\n")
+        #self.output_stream.write(self.indent_count * '\t' + f"<{name}> {value} </{name}>\n")
 
     # added
     def compile_token(self, condition=True, advance=True):
@@ -116,6 +116,7 @@ class CompilationEngine:
             self.compile_token()
 
             # className
+            self.class_name = self.current_token()
             self.compile_token(self.compare(IDENTIFIER))
 
             # '{'
@@ -181,22 +182,26 @@ class CompilationEngine:
         self.symbol_table.start_subroutine()
 
         # 'constructor' | 'function' | 'method'
+        subroutine_type = self.current_token()
         self.compile_token()
 
         # ('void' | type)
         self.compile_token(self.compare(KEYWORD, 'void') or self.is_type())
 
         # subroutineName
+        subroutine_name = self.current_token()
         self.compile_token(self.compare(IDENTIFIER))
 
         # '('
         self.compile_token(self.compare(SYMBOL, '('))
 
         # parameterList
-        self.compile_parameter_list()
+        n = self.compile_parameter_list()
 
         # ')'
         self.compile_token(self.compare(SYMBOL, ')'))
+
+        self.writer.write_function(f"{self.class_name}.{subroutine_name}", n+1 if subroutine_type == 'constructor' else n)
 
         # subroutineBody
         self.start_root('subroutineBody')
@@ -218,12 +223,14 @@ class CompilationEngine:
 
         self.end_root('subroutineDec')
 
-    def compile_parameter_list(self) -> None:
+    def compile_parameter_list(self) -> int:
         """Compiles a (possibly empty) parameter list, not including the
         enclosing "()".
         """
         # Your code goes here!
         self.start_root('parameterList')
+
+        count = 0
 
         has_more = self.is_type()
         while has_more:
@@ -236,6 +243,8 @@ class CompilationEngine:
             self.symbol_table.define(name, _type, ARG)
             self.compile_token(self.compare(IDENTIFIER))
 
+            count += 1
+
             # ','
             if self.compare(SYMBOL, ','):
                 self.compile_token()
@@ -243,6 +252,8 @@ class CompilationEngine:
                 has_more = False
 
         self.end_root('parameterList')
+
+        return count
 
     def compile_var_dec(self) -> None:
         """Compiles a var declaration."""
@@ -335,6 +346,7 @@ class CompilationEngine:
         self.compile_token()
 
         # varName
+        variable = self.current_token()
         self.compile_token(self.compare(IDENTIFIER))
 
         # ('[' expression ']')?
@@ -353,6 +365,8 @@ class CompilationEngine:
 
         # expression
         self.compile_expression()
+
+        self.writer.write_pop(self.symbol_table.segment_of(variable), self.symbol_table.index_of(variable))
 
         # ';'
         self.compile_token(self.compare(SYMBOL, ';'))

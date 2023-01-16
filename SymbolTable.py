@@ -6,16 +6,12 @@ as allowed by the Creative Common Attribution-NonCommercial-ShareAlike 3.0
 Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 """
 import typing
-
-FIELD = 'field'
-STATIC = 'static'
-VAR = 'var'
-ARG = 'argument'
+from Constants import *
 
 kind_to_segment = {
-    FIELD: 'this',
+    FIELD: THIS,
     STATIC: STATIC,
-    VAR: 'local',
+    VAR: LOCAL,
     ARG: ARG
 }
 
