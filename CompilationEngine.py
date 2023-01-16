@@ -260,7 +260,7 @@ class CompilationEngine:
         while has_more:
             # varName
             name = self.current_token()
-            self.symbol_table.define(name, _type, VAR)
+            self.symbol_table.define(name, _type, LOCAL)
             self.compile_token(self.compare(IDENTIFIER))
 
             # ','
@@ -467,7 +467,9 @@ class CompilationEngine:
             if op in biop_dict.keys():
                 self.writer.write_arithmetic(biop_dict[op])
             elif op == '*':
-                self.writer.write_call('Math.multiply')
+                self.writer.write_call('Math.multiply', 2)
+            elif op == '/':
+                self.writer.write_call('Math.divide', 2)
 
         self.end_root('expression')
 
@@ -550,9 +552,7 @@ class CompilationEngine:
 
             # varName
             else:
-                name = f"{xml_element_names[IDENTIFIER]}_{self.symbol_table.type_of(prev_value)}" \
-                       f"_{self.symbol_table.kind_of(prev_value)}_{self.symbol_table.index_of(prev_value)}"
-                self.add_element(name, prev_value)
+                self.writer.write_push(self.symbol_table.kind_of(prev_value), self.symbol_table.index_of(prev_value))
 
         else:
             raise Exception(f'Invalid Expression. curr_token: {self.current_token()}')

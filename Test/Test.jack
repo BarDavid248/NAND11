@@ -1,8 +1,14 @@
 class Main {
 
-   function void main() {
-      do Output.printInt(1 + (2 * 3));
-      return;
+    field int i;
+    static bool b1, b2;
+
+    function void main() {
+        var Point p;
+
+        do Output.printInt(1 + (2 * 3));
+        do Output.printInt(b1 + (p * i));
+        return;
    }
 
 }

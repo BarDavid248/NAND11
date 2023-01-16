@@ -1,6 +1,0 @@
-	push const 1
-	push const 2
-	push const 3
-	add
-	call Output.printInt 1
-	pop temp 0
