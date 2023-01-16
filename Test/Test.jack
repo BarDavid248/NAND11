@@ -3,13 +3,17 @@ class Main {
     field int i;
     static bool b1, b2;
 
-    method void main(int i) {
+    function void main() {
         var int x;
-        var Point p;
-
-        let p = 6 * 5;
-        let i = p - 1;
-
+        var int y;
+        if (x+1 = 0)
+        {
+            let y = 1;
+        }
+        else
+        {
+            let y = x - 5;
+        }
         return;
    }
 

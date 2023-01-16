@@ -1,9 +1,14 @@
-function Main.main 2
-	push const 6
-	push const 5
-	call Math.multiply 2
-	pop local 1
-	push local 1
+	push local 0
 	push const 1
+	add
+	push const 0
+	eq
+	neg
+	if-goto L1
+	push const 1
+	goto L2
+L1:
+	push local 0
+	push const 5
 	sub
-	pop argument 0
+L2:
