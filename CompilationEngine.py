@@ -201,7 +201,7 @@ class CompilationEngine:
         # ')'
         self.compile_token(self.compare(SYMBOL, ')'))
 
-        self.writer.write_function(f"{self.class_name}.{subroutine_name}", n+1 if subroutine_type == 'constructor' else n)
+        self.writer.write_function(f"{self.class_name}.{subroutine_name}", n+1 if subroutine_type == 'method' else n)
 
         # subroutineBody
         self.start_root('subroutineBody')

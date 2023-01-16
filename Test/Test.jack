@@ -3,7 +3,8 @@ class Main {
     field int i;
     static bool b1, b2;
 
-    function void main(int i) {
+    method void main(int i) {
+        var int x;
         var Point p;
 
         let p = 6 * 5;
