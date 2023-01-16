@@ -343,6 +343,8 @@ class CompilationEngine:
         # Your code goes here!
         self.start_root('letStatement')
 
+        is_arr = False
+
         # 'let'
         self.compile_token()
 
@@ -354,12 +356,16 @@ class CompilationEngine:
         if self.compare(SYMBOL, '['):
             # '['
             self.compile_token()
-
+            self.writer.write_push(self.symbol_table.segment_of(variable), self.symbol_table.index_of(variable))
             # expression
             self.compile_expression()
 
+            self.writer.write_arithmetic(biop_dict['+'])
+
             # ']'
             self.compile_token(self.compare(SYMBOL, ']'))
+
+            is_arr = True
 
         # '='
         self.compile_token(self.compare(SYMBOL, '='))
@@ -367,7 +373,13 @@ class CompilationEngine:
         # expression
         self.compile_expression()
 
-        self.writer.write_pop(self.symbol_table.segment_of(variable), self.symbol_table.index_of(variable))
+        if is_arr:
+            self.writer.write_pop("TEMP", 0)
+            self.writer.write_pop("POINTER", 1)
+            self.writer.write_push("TEMP", 0)
+            self.writer.write_pop("THAT", 0)
+        else:
+            self.writer.write_pop(self.symbol_table.segment_of(variable), self.symbol_table.index_of(variable))
 
         # ';'
         self.compile_token(self.compare(SYMBOL, ';'))
@@ -562,12 +574,17 @@ class CompilationEngine:
             if self.compare(SYMBOL, '['):
                 # varName
                 self.add_element(prev_name, prev_value)
+                self.writer.write_push(self.symbol_table.segment_of(prev_value), self.symbol_table.index_of(prev_value))
                 # '['
                 self.compile_token()
                 # expression
                 self.compile_expression()
                 # ']'
                 self.compile_token(self.compare(SYMBOL, ']'))
+
+                self.writer.write_arithmetic(biop_dict['+'])
+                self.writer.write_pop("POINTER", 1)
+                self.writer.write_push("THAT", 0)
 
             # subroutineCall
             elif self.compare(SYMBOL, '(') or self.compare(SYMBOL, '.'):

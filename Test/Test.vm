@@ -1,13 +1,13 @@
 function Main.main 0
-L1:
+	push local 1
+	push const 3
+	add
 	push local 0
 	push const 1
 	add
-	push const 0
-	eq
-	neg
-	if-goto L2
-	push const 1
-	pop local 1
-	goto L1
-L2:
+	pop POINTER 1
+	push THAT 0
+	pop TEMP 0
+	pop POINTER 1
+	push TEMP 0
+	pop THAT 0
