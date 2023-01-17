@@ -3,13 +3,10 @@ class Main {
     field int i;
     static bool b1, b2;
 
-    method void main(int i) {
-        var int x;
-        var Point p;
-
-        let p = 6 * 5;
-        let i = p - 1;
-
+    function void main() {
+        var arr x;
+        var arr y;
+        let y[3] = x[1];
         return;
    }
 

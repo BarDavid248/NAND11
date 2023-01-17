@@ -1,9 +1,13 @@
-function Main.main 2
-	push const 6
-	push const 5
-	call Math.multiply 2
-	pop local 1
+function Main.main 0
 	push local 1
+	push const 3
+	add
+	push local 0
 	push const 1
-	sub
-	pop argument 0
+	add
+	pop POINTER 1
+	push THAT 0
+	pop TEMP 0
+	pop POINTER 1
+	push TEMP 0
+	pop THAT 0
