@@ -374,10 +374,10 @@ class CompilationEngine:
         self.compile_expression()
 
         if is_arr:
-            self.writer.write_pop("TEMP", 0)
-            self.writer.write_pop("POINTER", 1)
-            self.writer.write_push("TEMP", 0)
-            self.writer.write_pop("THAT", 0)
+            self.writer.write_pop(TEMP, 0)
+            self.writer.write_pop(POINTER, 1)
+            self.writer.write_push(TEMP, 0)
+            self.writer.write_pop(THAT, 0)
         else:
             self.writer.write_pop(self.symbol_table.segment_of(variable), self.symbol_table.index_of(variable))
 
@@ -394,7 +394,10 @@ class CompilationEngine:
         # 'while'
         self.compile_token()
 
-        self.writer.write_label(f"L{self.label_num}")
+        first = self.label_num
+        second = self.label_num + 1
+        self.label_num += 2
+        self.writer.write_label(f"L{first}")
 
         # '('
         self.compile_token(self.compare(SYMBOL, '('))
@@ -406,7 +409,7 @@ class CompilationEngine:
         self.compile_token(self.compare(SYMBOL, ')'))
 
         self.writer.write_arithmetic(unop_dict['-'])
-        self.writer.write_if(f"L{self.label_num+1}")
+        self.writer.write_if(f"L{second}")
 
         # '{'
         self.compile_token(self.compare(SYMBOL, '{'))
@@ -417,9 +420,9 @@ class CompilationEngine:
         # '}'
         self.compile_token(self.compare(SYMBOL, '}'))
 
-        self.writer.write_goto(f"L{self.label_num}")
+        self.writer.write_goto(f"L{first}")
 
-        self.writer.write_label(f"L{self.label_num+1}")
+        self.writer.write_label(f"L{second}")
 
         self.label_num += 1
 
@@ -460,7 +463,10 @@ class CompilationEngine:
         self.compile_token(self.compare(SYMBOL, ')'))
 
         self.writer.write_arithmetic(unop_dict['-'])
-        self.writer.write_if(f"L{self.label_num}")
+        first = self.label_num
+        second = self.label_num + 1
+        self.label_num += 2
+        self.writer.write_if(f"L{first}")
 
         # '{'
         self.compile_token(self.compare(SYMBOL, '{'))
@@ -473,11 +479,12 @@ class CompilationEngine:
 
         # ('else' '{' statements '}')?
         if self.compare(KEYWORD, 'else'):
-            self.writer.write_goto(f"L{self.label_num + 1}")
+            self.label_num += 1
+            self.writer.write_goto(f"L{second}")
 
             # 'else'
             self.compile_token()
-            self.writer.write_label(f"L{self.label_num}")
+            self.writer.write_label(f"L{first}")
 
             # '{'
             self.compile_token(self.compare(SYMBOL, '{'))
@@ -487,12 +494,10 @@ class CompilationEngine:
 
             # '}'
             self.compile_token(self.compare(SYMBOL, '}'))
-            self.writer.write_label(f"L{self.label_num + 1}")
+            self.writer.write_label(f"L{second}")
 
-            self.label_num += 2
         else:
-            self.writer.write_label(f"L{self.label_num}")
-            self.label_num += 1
+            self.writer.write_label(f"L{first}")
 
         self.end_root('ifStatement')
 
@@ -544,7 +549,13 @@ class CompilationEngine:
             # TODO: implement string
             self.tokenizer.advance()
         elif self.compare(KEYWORD) and self.current_token() in ('true', 'false', 'null', 'this'):
-            # TODO: implement true, false, null and this
+            if self.current_token() == 'true':
+                self.writer.write_push(CONST, 1)
+                self.writer.write_arithmetic(unop_dict['-'])
+            elif self.current_token() in ('false', 'null'):
+                self.writer.write_push(CONST, 0)
+            else:
+                self.writer.write_push(POINTER, 0)
             self.tokenizer.advance()
 
         # '(' expression ')'
