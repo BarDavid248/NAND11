@@ -25,7 +25,7 @@ class VMWriter:
             "LOCAL", "STATIC", "THIS", "THAT", "POINTER", "TEMP"
             index (int): the index to push to.
         """
-        self.output_stream.write(f"\tpush {segment} {index}\n")
+        self.output_stream.write(f"push {segment} {index}\n")
 
     def write_pop(self, segment: str, index: int) -> None:
         """Writes a VM pop command.
@@ -35,7 +35,7 @@ class VMWriter:
             "LOCAL", "STATIC", "THIS", "THAT", "POINTER", "TEMP".
             index (int): the index to pop from.
         """
-        self.output_stream.write(f"\tpop {segment} {index}\n")
+        self.output_stream.write(f"pop {segment} {index}\n")
 
     def write_arithmetic(self, command: str) -> None:
         """Writes a VM arithmetic command.
@@ -44,7 +44,7 @@ class VMWriter:
             command (str): the command to write, can be "ADD", "SUB", "NEG", 
             "EQ", "GT", "LT", "AND", "OR", "NOT", "SHIFTLEFT", "SHIFTRIGHT".
         """
-        self.output_stream.write(f"\t{command}\n")
+        self.output_stream.write(f"{command}\n")
 
     def write_label(self, label: str) -> None:
         """Writes a VM label command.
@@ -60,7 +60,7 @@ class VMWriter:
         Args:
             label (str): the label to go to.
         """
-        self.output_stream.write(f"\tgoto {label}\n")
+        self.output_stream.write(f"goto {label}\n")
 
     def write_if(self, label: str) -> None:
         """Writes a VM if-goto command.
@@ -68,7 +68,7 @@ class VMWriter:
         Args:
             label (str): the label to go to.
         """
-        self.output_stream.write(f"\tif-goto {label}\n")
+        self.output_stream.write(f"if-goto {label}\n")
 
     def write_call(self, name: str, n_args: int) -> None:
         """Writes a VM call command.
@@ -77,7 +77,7 @@ class VMWriter:
             name (str): the name of the function to call.
             n_args (int): the number of arguments the function receives.
         """
-        self.output_stream.write(f"\tcall {name} {n_args}\n")
+        self.output_stream.write(f"call {name} {n_args}\n")
 
     def write_function(self, name: str, n_locals: int) -> None:
         """Writes a VM function command.
@@ -90,4 +90,4 @@ class VMWriter:
 
     def write_return(self) -> None:
         """Writes a VM return command."""
-        self.output_stream.write("\treturn\n")
+        self.output_stream.write("return\n")
