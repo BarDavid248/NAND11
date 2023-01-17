@@ -52,7 +52,7 @@ class VMWriter:
         Args:
             label (str): the label to write.
         """
-        self.output_stream.write(f"{label}:\n")
+        self.output_stream.write(f"label {label}\n")
 
     def write_goto(self, label: str) -> None:
         """Writes a VM goto command.

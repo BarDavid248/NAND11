@@ -1,4 +1,4 @@
-CONST = 'const'
+CONST = 'constant'
 ARG = 'argument'
 VAR = 'var'
 LOCAL = 'local'

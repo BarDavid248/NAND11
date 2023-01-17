@@ -560,6 +560,7 @@ class CompilationEngine:
         elif self.compare(SYMBOL) and self.current_token() in "-~^#":
             # unaryOp
             self.compile_token()
+            print(self.current_token())
             # term
             self.compile_term()
 
