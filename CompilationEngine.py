@@ -186,6 +186,9 @@ class CompilationEngine:
         subroutine_type = self.current_token()
         self.compile_token()
 
+        if subroutine_type == 'constructor':
+            self.symbol_table.define('this', self.class_name, ARG)
+
         # ('void' | type)
         self.compile_token(self.compare(KEYWORD, 'void') or self.is_type())
 
@@ -197,19 +200,10 @@ class CompilationEngine:
         self.compile_token(self.compare(SYMBOL, '('))
 
         # parameterList
-        n_params = self.compile_parameter_list()
+        self.compile_parameter_list()
 
         # ')'
         self.compile_token(self.compare(SYMBOL, ')'))
-
-        n_arg = n_params+1 if subroutine_type == 'method' else n_params
-        self.writer.write_function(f"{self.class_name}.{subroutine_name}", n_arg)
-
-        if subroutine_type == 'constructor':
-            self.writer.write_push(CONST, n_params)
-            self.writer.write_call('Memory.alloc', 1)
-            self.writer.write_pop(POINTER, 0)
-
 
         # subroutineBody
         self.start_root('subroutineBody')
@@ -218,8 +212,20 @@ class CompilationEngine:
         self.compile_token(self.compare(SYMBOL, '{'))
 
         # varDec*
+        n_var = 0
         while self.compare(KEYWORD, 'var'):
+            n_var += 1
             self.compile_var_dec()
+
+        self.writer.write_function(f"{self.class_name}.{subroutine_name}", n_var)
+
+        if subroutine_type == 'method':
+            self.writer.write_push(ARG, 0)
+            self.writer.write_pop(POINTER, 0)
+        elif subroutine_type == 'constructor':
+            self.writer.write_push(CONST, self.symbol_table.var_count(FIELD))
+            self.writer.write_call('Memory.alloc', 1)
+            self.writer.write_pop(POINTER, 0)
 
         # statements
         self.compile_statements()
@@ -447,6 +453,8 @@ class CompilationEngine:
         if not self.compare(SYMBOL, ';'):
             self.compile_expression()
 
+        self.writer.write_return()
+
         # ';'
         self.compile_token(self.compare(SYMBOL, ';'))
 
@@ -553,7 +561,11 @@ class CompilationEngine:
             self.writer.write_push(CONST, self.current_token())
             self.tokenizer.advance()
         elif self.tokenizer.token_type() == STRING_CONST:
-            # TODO: implement string
+            self.writer.write_push(CONST, len(self.current_token()))
+            self.writer.write_call('String.new', 1)
+            for c in self.current_token():
+                self.writer.write_push(CONST, ord(c))
+                self.writer.write_call('String.appendChar', 1)
             self.tokenizer.advance()
         elif self.compare(KEYWORD) and self.current_token() in ('true', 'false', 'null', 'this'):
             if self.current_token() == 'true':
