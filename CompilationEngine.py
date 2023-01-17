@@ -197,12 +197,19 @@ class CompilationEngine:
         self.compile_token(self.compare(SYMBOL, '('))
 
         # parameterList
-        n = self.compile_parameter_list()
+        n_params = self.compile_parameter_list()
 
         # ')'
         self.compile_token(self.compare(SYMBOL, ')'))
 
-        self.writer.write_function(f"{self.class_name}.{subroutine_name}", n+1 if subroutine_type == 'method' else n)
+        n_arg = n_params+1 if subroutine_type == 'method' else n_params
+        self.writer.write_function(f"{self.class_name}.{subroutine_name}", n_arg)
+
+        if subroutine_type == 'constructor':
+            self.writer.write_push(CONST, n_params)
+            self.writer.write_call('Memory.alloc', 1)
+            self.writer.write_pop(POINTER, 0)
+
 
         # subroutineBody
         self.start_root('subroutineBody')
@@ -595,27 +602,42 @@ class CompilationEngine:
                 self.compile_token(self.compare(SYMBOL, ']'))
 
                 self.writer.write_arithmetic(biop_dict['+'])
-                self.writer.write_pop("POINTER", 1)
-                self.writer.write_push("THAT", 0)
+                self.writer.write_pop(POINTER, 1)
+                self.writer.write_push(THAT, 0)
 
             # subroutineCall
             elif self.compare(SYMBOL, '(') or self.compare(SYMBOL, '.'):
                 # subroutineName | className | varName
                 self.add_element(prev_name, prev_value)
+                identifier, subroutine = None, f"{self.class_name}.{prev_value}"
+                is_static_function = False
 
                 # ('.' subroutineName)?
                 if self.compare(SYMBOL, '.'):
                     # '.'
                     self.compile_token()
                     # subroutineName
+                    if self.symbol_table.is_symbol(prev_value):
+                        identifier, subroutine = prev_value, f"{self.symbol_table.type_of(prev_value)}.{self.current_token()}"
+                    else:
+                        subroutine = f"{prev_value}.{self.current_token()}"
+                        is_static_function = True
                     self.compile_token(self.compare(IDENTIFIER))
+
+                if not is_static_function:
+                    if identifier:
+                        self.writer.write_push(self.symbol_table.segment_of(identifier), self.symbol_table.index_of(identifier))
+                    else:
+                        self.writer.write_push(POINTER, 0)
 
                 # '('
                 self.compile_token(self.compare(SYMBOL, '('))
                 # expressionList
-                self.compile_expression_list()
+                n = self.compile_expression_list()
                 # ')'
                 self.compile_token(self.compare(SYMBOL, ')'))
+
+                self.writer.write_call(subroutine, n if is_static_function else n+1)
 
             # varName
             else:
