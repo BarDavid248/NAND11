@@ -33,6 +33,8 @@ class SymbolTable:
         """Starts a new subroutine scope (i.e., resets the subroutine's 
         symbol table).
         """
+        self.print()
+
         self._subroutine_table = dict()
         self._indices[VAR] = 0
         self._indices[ARG] = 0
@@ -119,7 +121,6 @@ class SymbolTable:
     # added
     def is_symbol(self, name):
         value = (name in self._class_table.keys()) or (name in self._subroutine_table.keys())
-        print(f"checking symbol {name}: {value}")
         return value
 
     def print(self):

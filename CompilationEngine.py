@@ -186,7 +186,7 @@ class CompilationEngine:
         subroutine_type = self.current_token()
         self.compile_token()
 
-        if subroutine_type == 'constructor':
+        if subroutine_type == 'method':
             self.symbol_table.define('this', self.class_name, ARG)
 
         # ('void' | type)
@@ -212,12 +212,10 @@ class CompilationEngine:
         self.compile_token(self.compare(SYMBOL, '{'))
 
         # varDec*
-        n_var = 0
         while self.compare(KEYWORD, 'var'):
-            n_var += 1
             self.compile_var_dec()
 
-        self.writer.write_function(f"{self.class_name}.{subroutine_name}", n_var)
+        self.writer.write_function(f"{self.class_name}.{subroutine_name}", self.symbol_table.var_count(VAR))
 
         if subroutine_type == 'method':
             self.writer.write_push(ARG, 0)
@@ -320,21 +318,29 @@ class CompilationEngine:
         self.compile_token()
 
         # subroutineName | className | varName
-        identifier = self.current_token()
-        subroutine = identifier
+        prev_value = self.current_token()
         self.compile_token(self.compare(IDENTIFIER))
+
+        identifier, subroutine = None, f"{self.class_name}.{prev_value}"
+        is_static_function = False
 
         # ('.' subroutineName)?
         if self.compare(SYMBOL, '.'):
             # '.'
             self.compile_token()
             # subroutineName
-            subroutine += f".{self.current_token()}"
+            if self.symbol_table.is_symbol(prev_value):
+                identifier, subroutine = prev_value, f"{self.symbol_table.type_of(prev_value)}.{self.current_token()}"
+            else:
+                subroutine = f"{prev_value}.{self.current_token()}"
+                is_static_function = True
             self.compile_token(self.compare(IDENTIFIER))
 
-        if self.symbol_table.is_symbol(identifier):  # if method
-            self.symbol_table.define('this', self.symbol_table.type_of(identifier), ARG)
-            # TODO: self.writer.write_push(this)
+        if not is_static_function:
+            if identifier:
+                self.writer.write_push(self.symbol_table.segment_of(identifier), self.symbol_table.index_of(identifier))
+            else:
+                self.writer.write_push(POINTER, 0)
 
         # '('
         self.compile_token(self.compare(SYMBOL, '('))
@@ -346,7 +352,7 @@ class CompilationEngine:
         # ';'
         self.compile_token(self.compare(SYMBOL, ';'))
 
-        self.writer.write_call(subroutine, n)
+        self.writer.write_call(subroutine, n if is_static_function else n + 1)
         self.writer.write_pop(TEMP, 0)
 
         self.end_root('doStatement')
@@ -421,7 +427,7 @@ class CompilationEngine:
         # ')'
         self.compile_token(self.compare(SYMBOL, ')'))
 
-        self.writer.write_arithmetic(unop_dict['-'])
+        self.writer.write_arithmetic(unop_dict['~'])
         self.writer.write_if(f"L{second}")
 
         # '{'
@@ -479,7 +485,7 @@ class CompilationEngine:
         # ')'
         self.compile_token(self.compare(SYMBOL, ')'))
 
-        self.writer.write_arithmetic(unop_dict['-'])
+        self.writer.write_arithmetic(unop_dict['~'])
         first = self.label_num
         second = self.label_num + 1
         self.label_num += 2
@@ -567,12 +573,12 @@ class CompilationEngine:
             self.writer.write_call('String.new', 1)
             for c in self.current_token():
                 self.writer.write_push(CONST, ord(c))
-                self.writer.write_call('String.appendChar', 1)
+                self.writer.write_call('String.appendChar', 2)
             self.tokenizer.advance()
         elif self.compare(KEYWORD) and self.current_token() in ('true', 'false', 'null', 'this'):
             if self.current_token() == 'true':
-                self.writer.write_push(CONST, 1)
-                self.writer.write_arithmetic(unop_dict['-'])
+                self.writer.write_push(CONST, 0)
+                self.writer.write_arithmetic(unop_dict['~'])
             elif self.current_token() in ('false', 'null'):
                 self.writer.write_push(CONST, 0)
             else:
@@ -589,12 +595,15 @@ class CompilationEngine:
             self.compile_token(self.compare(SYMBOL, ')'))
 
         # unaryOp term
+
         elif self.compare(SYMBOL) and self.current_token() in "-~^#":
             # unaryOp
+            op = self.current_token()
             self.compile_token()
-            print(self.current_token())
             # term
             self.compile_term()
+
+            self.writer.write_arithmetic(unop_dict[op])
 
         # varName | varName '[' expression ']' | subroutineCall
         elif self.compare(IDENTIFIER):
@@ -625,6 +634,9 @@ class CompilationEngine:
                 self.add_element(prev_name, prev_value)
                 identifier, subroutine = None, f"{self.class_name}.{prev_value}"
                 is_static_function = False
+
+                print(f'--COMPILING--\nprev_value: {prev_value}, curr_value: {self.current_token()}')
+                print(f'checking if {prev_value} is symbol: {self.symbol_table.is_symbol(prev_value)}')
 
                 # ('.' subroutineName)?
                 if self.compare(SYMBOL, '.'):
