@@ -452,6 +452,8 @@ class CompilationEngine:
         # expression?
         if not self.compare(SYMBOL, ';'):
             self.compile_expression()
+        else:
+            self.writer.write_push(CONST, 0)
 
         self.writer.write_return()
 
